@@ -1,1 +1,1 @@
-from .main-game import *
+from .main_game import *
