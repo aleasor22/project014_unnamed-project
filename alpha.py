@@ -2,11 +2,6 @@ import tkinter
 from PIL import ImageTk, Image
 from pynput import keyboard
 
-#class INPUTS():
-#	def __init__(self):
-#		self.currPos = None
-#		self.lastPos = None
-
 class OBJECT():
 	def __init__(self, canvasID):
 		self.canvasID = canvasID
@@ -29,7 +24,6 @@ class MY_TKINTER():
 		self.__bg_tileMatrix = [[]]
 		self.__bg_tiles = {}
 		self.__fg_player = {}
-		#self.inputs = INPUTS()
 
 	def renderImages(self, name:str, fileLoc:str, pos_x:int, pos_y:int, rotate:int=0):
 		imgPil = Image.open(str(fileLoc))
@@ -37,8 +31,6 @@ class MY_TKINTER():
 		
 		imgTk = ImageTk.PhotoImage(newPil)
 		canvasID = self.__bg_canvas.create_image(pos_x+33, pos_y+33, image=imgTk, anchor="center")
-
-
 
 		self.__fg_player[str(name)] = OBJECT(canvasID)
 		self.__fg_player[str(name)].imgID = imgTk
@@ -65,7 +57,7 @@ class MY_TKINTER():
 
 				myBbox = (pos_x*64, pos_y*64, (pos_x*64)+64, (pos_y*64)+64)
 				tmp = self.__bg_canvas.create_rectangle(myBbox, fill=color)
-				self.__bg_canvas.create_text((pos_x*64)+32, (pos_y*64)+32, text=f"{pos_x, pos_y}", fill="red")
+				#self.__bg_canvas.create_text((pos_x*64)+32, (pos_y*64)+32, text=f"{pos_x, pos_y}", fill="red")
 				myID = f"{pos_x}|{pos_y}"
 				self.__bg_tiles[myID] = OBJECT(canvasID=tmp)
 				self.__bg_tiles[myID].bbox = myBbox
@@ -78,13 +70,6 @@ class MY_TKINTER():
 				colorBool = False
 			else:
 				colorBool = True
-		
-	
-	#def printMatrix(self):
-	#	for x in range(len(self.__bg_tileMatrix)):
-	#		for y in range(len(self.__bg_tileMatrix[x])):
-	#			print(self.__bg_tileMatrix[x][y], end=" ")
-	#		print()
 	
 	def findMyTile(self, coords):
 		for x in range(len(self.__bg_tileMatrix)):
@@ -95,12 +80,23 @@ class MY_TKINTER():
 						#print(f"({x}, {y})")
 						return (x, y)
 
-	def mousePosition(self, event):
-		#print(f"Mouse Pos: {self.findMyTile((event.x, event.y))}")
-		#print(f"Player Pos: {self.findMyTile(self.__fg_player["player"].coords)}")
+	def onClick(self, event):
+		i, j = self.findMyTile((event.x, event.y))
+		x1, y1, x2, y2 = self.__bg_tileMatrix[i][j]
 
+		self.__bg_canvas.delete(self.__fg_player["player"].canvasID)
+		del self.__fg_player["player"]
+
+		temp = {}
+		for key in self.__fg_player.keys():
+			if "line-" not in key:
+				temp[key] = self.__fg_player[key]
+		self.__fg_player = temp
+
+		self.renderImages("player", "art/tmp-player.png", x1, y1, rotate=90)
+
+	def mousePosition(self, event):
 		path = self.findPath(event)
-		print(path)
 		for index in range(len(path)):
 			try:
 				x, y = path[index][1]
@@ -143,7 +139,7 @@ class MY_TKINTER():
 							self.renderImages(f"line-{index}", "art/Path-vBEND.png", pos_x=x, pos_y=y, rotate=0)
 
 			except IndexError as e:
-				print(e)
+				#print(e)
 				continue
 
 	def findPath(self, event):
@@ -209,13 +205,14 @@ class MY_TKINTER():
 		##Places Images to screen
 		x1, y1, x2, y2 = self.__bg_tiles["9|5"].bbox
 		#print(map.get_tileInfo()["5|10"][0])
-		self.renderImages("player", "art/tmp-player.png", x1, y1, rotate=90)
+		self.renderImages("player", "art/tmp-player.png", x1, y1)
 
 		self.__bg_canvas.bind("<Motion>", self.mousePosition)
+		self.__bg_canvas.bind("<Button-1>", self.onClick)
 
 
 
-game = MY_TKINTER("Demo Game [v0.0.13-ref001]")
+game = MY_TKINTER("Demo Game [v0.0.14-ref001]")
 
 game.game_start()
 game.mainLoop()
